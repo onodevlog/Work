@@ -1,0 +1,50 @@
+name: Create weekdays note
+on:
+  schedule:
+    - cron: 0 0 * * 1-5
+jobs:
+  weekdays_note:
+    name: Create weekdays note
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Set current datetime as env variable
+        env:
+          TZ: Asia/Tokyo
+        run: echo "CURRENT_DATETIME=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+      - name: Create weekdays note
+        run: |
+          if [[ $CLOSE_PREVIOUS == true ]]; then
+            previous_issue_number=$(gh issue list \
+              --label "$LABELS" \
+              --json number \
+              --jq '.[0].number')
+            if [[ -n $previous_issue_number ]]; then
+              gh issue close "$previous_issue_number"
+              gh issue unpin "$previous_issue_number"
+            fi
+          fi
+          new_issue_url=$(gh issue create \
+            --title "$TITLE" \
+            --assignee "$ASSIGNEES" \
+            --label "$LABELS" \
+            --body "$BODY")
+          if [[ $PINNED == true ]]; then
+            gh issue pin "$new_issue_url"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: ${{ env.CURRENT_DATETIME }}
+          ASSIGNEES: [自身の GitHub ユーザID]
+          LABELS: TIL
+          BODY: |
+            ## 今日やること
+            - [ ] 
+            ## 今日のハイライト
+            - 
+            ## 検索用ワード
+            - 
+          PINNED: false
+          CLOSE_PREVIOUS: true
