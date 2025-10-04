@@ -1,7 +1,7 @@
 name: Create weekdays note
 on:
   schedule:
-    - cron: 0 0 * * 1-5
+    - cron: 00 10***
 jobs:
   weekdays_note:
     name: Create weekdays note
